@@ -263,6 +263,27 @@ class ClientSuggest
     }
 
     /**
+     * Подсказки адресов
+     *
+     * @link https://dadata.ru/api/suggest/address/
+     * @param string $address
+     * @param int  $count
+     * @param array  $fields
+     * @return bool|mixed|string
+     */
+    public function suggestAddress($address, $count = 10, $language = 'ru', $fields = [])
+    {
+        $this->validateCount($count);
+        $this->validateLanguage($language);
+
+        return $this->suggest("address", array_merge([
+            'query' => $address,
+            'count' => $count,
+            'language' => $language
+        ], $fields));
+    }
+
+    /**
      * Обратное геокодирование
      *
      * @param float $lat
@@ -275,20 +296,42 @@ class ClientSuggest
      */
     public function geolocateAddress($lat, $lon, $count = 10, $radiusMeters = 100, $language = 'ru')
     {
-        if ($count > 20) {
-            throw new RuntimeException('The count can\'t be greater than 20');
-        }
-
-        if ($radiusMeters > 100) {
-            throw new RuntimeException('The radius meters can\'t be greater than 1000');
-        }
-
-        if (!in_array($language, ['ru', 'en'])) {
-            throw new RuntimeException('Unexpected value of the language field: '.$language.'. Expected: `ru` or `en`');
-        }
+        $this->validateCount($count);
+        $this->validateRadiusMeters($radiusMeters);
+        $this->validateLanguage($language);
 
         $params = compact('lat', 'lon', 'language', 'count');
         $params['radius_meters'] = $radiusMeters;
         return $this->query("{$this->base_url}/{$this->version}/{$this->url_geolocate_address}", $params);
+    }
+
+    /**
+     * @param int $count
+     */
+    private function validateCount($count)
+    {
+        if ($count > 20) {
+            throw new RuntimeException('The count can\'t be greater than 20');
+        }
+    }
+
+    /**
+     * @param int $radiusMeters
+     */
+    private function validateRadiusMeters($radiusMeters)
+    {
+        if ($radiusMeters > 100) {
+            throw new RuntimeException('The radius meters can\'t be greater than 1000');
+        }
+    }
+
+    /**
+     * @param string $language
+     */
+    private function validateLanguage($language)
+    {
+        if (!in_array($language, ['ru', 'en'])) {
+            throw new RuntimeException('Unexpected value of the language field: '.$language.'. Expected: `ru` or `en`');
+        }
     }
 }

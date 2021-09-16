@@ -50,7 +50,13 @@ use Fomvasss\Dadata\Facades\DadataSuggest;
     ```
     Первым параметором может быть ИНН, ОГРН или Dadata HID
 
-3. Пример использование [обратное геокодирование (адрес по координатам)](https://dadata.ru/api/geolocate/) с параметрами:
+3. Пример использование [API подсказок по адресам](https://dadata.ru/api/suggest/address/):
+
+    ```php
+    $result = DadataSuggest::suggestAddress("Москва", 2);
+    print_r($result);
+   
+4. Пример использование [обратное геокодирование (адрес по координатам)](https://dadata.ru/api/geolocate/):
 
     ```php
     $result = DadataSuggest::geolocateAddress(55.752448, 37.633777);
