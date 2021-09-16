@@ -23,7 +23,7 @@ $app->withFacades();
 ```bash
 php artisan vendor:publish --provider="Fomvasss\Dadata\DadataServiceProvider"
 ```
-Задать токет (и ключ для API стандартизации) в `config/dadata.php` или `.env`
+Задать токен (и ключ для API стандартизации) в `config/dadata.php` или `.env`
 ```php
     'token' => env('DADATA_TOKEN', ''),
     'secret' => env('DADATA_SECRET', ''),
@@ -49,6 +49,13 @@ use Fomvasss\Dadata\Facades\DadataSuggest;
     print_r($result);
     ```
     Первым параметором может быть ИНН, ОГРН или Dadata HID
+
+3. Пример использование [обратное геокодирование (адрес по координатам)](https://dadata.ru/api/geolocate/) с параметрами:
+
+    ```php
+    $result = DadataSuggest::geolocateAddress(55.752448, 37.633777);
+    print_r($result);
+    ```
 
 ### Сервис стандартизации (https://dadata.ru/api/clean/)
 Добавить в клас фасад:
