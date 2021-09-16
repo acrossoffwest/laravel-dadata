@@ -3,6 +3,7 @@
 namespace Fomvasss\Dadata;
 
 use Exception;
+use Fomvasss\Dadata\Response\Address;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
@@ -133,6 +134,13 @@ class ClientSuggest
     protected $url_findById = 'rs/findById/party';
 
     /**
+     * URI обратного геокодирования по координатам
+     *
+     * @var string
+     */
+    protected $url_geolocate_address = 'rs/geolocate/address';
+
+    /**
      * @var ClientInterface
      */
     protected $httpClient;
@@ -177,8 +185,7 @@ class ClientSuggest
      */
     private function query($url, array $params = [], $method = self::METHOD_POST)
     {
-
-        if (empty($params['query'])) {
+        if (empty($params['query']) && (empty($params['lat']) && empty($params['lon']))) {
             throw new RuntimeException('Empty request');
         }
 
@@ -255,5 +262,76 @@ class ClientSuggest
         return $this->query("{$this->base_url}/{$this->version}/{$this->url_suggestions}/$type", $fields);
     }
 
+    /**
+     * Подсказки адресов
+     *
+     * @link https://dadata.ru/api/suggest/address/
+     * @param string $address
+     * @param int  $count
+     * @param array  $fields
+     * @return bool|mixed|string
+     */
+    public function suggestAddress($address, $count = 10, $language = 'ru', $fields = [])
+    {
+        $this->validateCount($count);
+        $this->validateLanguage($language);
 
+        return $this->suggest("address", array_merge([
+            'query' => $address,
+            'count' => $count,
+            'language' => $language
+        ], $fields));
+    }
+
+    /**
+     * Обратное геокодирование
+     *
+     * @param float $lat
+     * @param float $lon
+     * @param int $count max=20
+     * @param int $radiusMeters max=1000
+     * @param string $language ru/en
+     *
+     * @return bool|mixed|string
+     */
+    public function geolocateAddress($lat, $lon, $count = 10, $radiusMeters = 100, $language = 'ru')
+    {
+        $this->validateCount($count);
+        $this->validateRadiusMeters($radiusMeters);
+        $this->validateLanguage($language);
+
+        $params = compact('lat', 'lon', 'language', 'count');
+        $params['radius_meters'] = $radiusMeters;
+        return $this->query("{$this->base_url}/{$this->version}/{$this->url_geolocate_address}", $params);
+    }
+
+    /**
+     * @param int $count
+     */
+    private function validateCount($count)
+    {
+        if ($count > 20) {
+            throw new RuntimeException('The count can\'t be greater than 20');
+        }
+    }
+
+    /**
+     * @param int $radiusMeters
+     */
+    private function validateRadiusMeters($radiusMeters)
+    {
+        if ($radiusMeters > 100) {
+            throw new RuntimeException('The radius meters can\'t be greater than 1000');
+        }
+    }
+
+    /**
+     * @param string $language
+     */
+    private function validateLanguage($language)
+    {
+        if (!in_array($language, ['ru', 'en'])) {
+            throw new RuntimeException('Unexpected value of the language field: '.$language.'. Expected: `ru` or `en`');
+        }
+    }
 }
